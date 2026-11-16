@@ -7,6 +7,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\MemberController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DataExportController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -39,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('notifications/{id}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
+    Route::get('profile/export', [DataExportController::class, 'download'])->name('profile.export');
 });
 
 require __DIR__.'/auth.php';

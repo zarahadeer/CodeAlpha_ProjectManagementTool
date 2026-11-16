@@ -9,28 +9,37 @@
                 @endif
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="flex flex-wrap items-center gap-3">
                 {{-- Member avatars --}}
-                <a href="{{ route('members.index', $project) }}" class="flex items-center gap-3" title="Manage members">
-                    <div class="flex -space-x-2">
-                        @foreach ($project->members->take(5) as $member)
-                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-xs font-semibold text-white ring-2 ring-white"
-                                  title="{{ $member->name }}">
-                                {{ strtoupper(mb_substr($member->name, 0, 1)) }}
-                            </span>
-                        @endforeach
-                        @if ($project->members->count() > 5)
-                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-600 ring-2 ring-white">
-                                +{{ $project->members->count() - 5 }}
-                            </span>
-                        @endif
-                    </div>
-                    <span class="text-sm font-medium text-teal-700 hover:underline">Members</span>
+                <div class="flex -space-x-2">
+                    @foreach ($project->members->take(5) as $member)
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-xs font-semibold text-white ring-2 ring-white"
+                              title="{{ $member->name }}">
+                            {{ strtoupper(mb_substr($member->name, 0, 1)) }}
+                        </span>
+                    @endforeach
+                    @if ($project->members->count() > 5)
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-600 ring-2 ring-white">
+                            +{{ $project->members->count() - 5 }}
+                        </span>
+                    @endif
+                </div>
+
+                {{-- Members button --}}
+                <a href="{{ route('members.index', $project) }}"
+                   class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:border-teal-500 hover:text-teal-700">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 010 7M19 14.5c1.5.8 2.5 2.6 2.5 5.5"/>
+                    </svg>
+                    Members
                 </a>
 
                 @can('update', $project)
                     <a href="{{ route('projects.edit', $project) }}"
-                       class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-teal-500 hover:text-teal-700">
+                       class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:border-teal-500 hover:text-teal-700">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16v4z"/>
+                        </svg>
                         Edit
                     </a>
                 @endcan
@@ -40,7 +49,12 @@
                           onsubmit="return confirm('Delete this project and all its tasks?')">
                         @csrf
                         @method('DELETE')
-                        <button class="text-sm font-medium text-red-600 hover:underline">Delete</button>
+                        <button class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:border-red-300 hover:bg-red-50">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/>
+                            </svg>
+                            Delete
+                        </button>
                     </form>
                 @endcan
             </div>

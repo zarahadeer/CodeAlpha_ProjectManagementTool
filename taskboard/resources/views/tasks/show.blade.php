@@ -1,9 +1,15 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">{{ $task->title }}</h2>
+        <x-slot name="header">
+        <div class="flex items-center justify-between gap-4">
+            <h2 class="text-2xl font-bold tracking-tight text-slate-900">{{ $task->title }}</h2>
+
             <a href="{{ route('projects.show', $task->project) }}"
-               class="text-sm text-teal-600 dark:text-teal-400 underline">&larr; Back to board</a>
+               class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:border-teal-500 hover:text-teal-700">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to board
+            </a>
         </div>
     </x-slot>
 
@@ -96,12 +102,17 @@
                 </form>
             </div>
 
-            @can('delete', $task)
+                        @can('delete', $task)
                 <form method="POST" action="{{ route('tasks.destroy', $task) }}"
                       onsubmit="return confirm('Delete this task?')">
                     @csrf
                     @method('DELETE')
-                    <button class="text-sm text-red-600 underline">Delete this task</button>
+                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:border-red-300 hover:bg-red-50">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/>
+                        </svg>
+                        Delete this task
+                    </button>
                 </form>
             @endcan
 
