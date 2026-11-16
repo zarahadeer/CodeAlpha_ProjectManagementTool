@@ -1,3 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.sortable-ghost {
+    opacity: 0.4;
+}
