@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\User;
+use App\Notifications\TaskAssigned;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -40,7 +42,7 @@ class TaskController extends Controller
         return view('tasks.show', compact('task'));
     }
 
-    public function update(Request $request, Task $task)
+        public function update(Request $request, Task $task)
     {
         Gate::authorize('update', $task);
 
@@ -53,7 +55,6 @@ class TaskController extends Controller
                 'required',
                 Rule::exists('board_columns', 'id')->where('project_id', $project->id),
             ],
-            // Can only assign to someone who is a member of this project.
             'assigned_to' => [
                 'nullable',
                 Rule::exists('project_user', 'user_id')->where('project_id', $project->id),
@@ -62,12 +63,20 @@ class TaskController extends Controller
             'due_date' => ['nullable', 'date'],
         ]);
 
-        // Moved to another column: put it at the bottom of that column.
         if ((int) $data['board_column_id'] !== $task->board_column_id) {
             $data['position'] = $this->nextPosition($data['board_column_id']);
         }
 
+        $previousAssignee = (int) $task->assigned_to;
+
         $task->update($data);
+
+        // Tell the new assignee (not if you assigned the task to yourself).
+        $newAssignee = (int) $task->assigned_to;
+
+        if ($newAssignee && $newAssignee !== $previousAssignee && $newAssignee !== $request->user()->id) {
+            User::find($newAssignee)?->notify(new TaskAssigned($task, $request->user()));
+        }
 
         return redirect()->route('tasks.show', $task)->with('status', 'Task updated.');
     }

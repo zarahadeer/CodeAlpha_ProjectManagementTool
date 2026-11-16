@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use App\Notifications\AddedToProject;
 
 class MemberController extends Controller
 {
@@ -36,6 +37,7 @@ class MemberController extends Controller
         }
 
         $project->members()->attach($user->id, ['role' => 'member']);
+        $user->notify(new AddedToProject($project, $request->user()));
 
         return back()->with('status', "{$user->name} was added to the project.");
     }

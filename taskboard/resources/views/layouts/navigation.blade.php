@@ -17,6 +17,54 @@
 
             <!-- User menu -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                                @php
+                    $unreadCount = Auth::user()->unreadNotifications()->count();
+                    $latestNotifications = Auth::user()->notifications()->limit(5)->get();
+                @endphp
+
+                <div class="me-3">
+                    <x-dropdown align="right" width="w-80">
+                        <x-slot name="trigger">
+                            <button class="relative rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none" aria-label="Notifications">
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>
+                                </svg>
+                                @if ($unreadCount > 0)
+                                    <span class="absolute -top-0.5 -right-0.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                                        {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                                    </span>
+                                @endif
+                            </button>
+                        </x-slot>
+
+                        <x-slot name="content">
+                            <div class="flex items-center justify-between border-b border-slate-100 px-4 py-2">
+                                <span class="text-sm font-semibold text-slate-800">Notifications</span>
+                                @if ($unreadCount > 0)
+                                    <form method="POST" action="{{ route('notifications.readAll') }}">
+                                        @csrf
+                                        <button class="text-xs text-teal-700 hover:underline">Mark all read</button>
+                                    </form>
+                                @endif
+                            </div>
+
+                            @forelse ($latestNotifications as $n)
+                                <a href="{{ route('notifications.open', $n->id) }}"
+                                   class="block px-4 py-3 text-sm hover:bg-slate-50 {{ $n->read_at ? 'text-slate-500' : 'bg-teal-50 text-slate-800' }}">
+                                    <p>{{ $n->data['message'] }}</p>
+                                    <p class="mt-0.5 text-xs text-slate-400">{{ $n->created_at->diffForHumans() }}</p>
+                                </a>
+                            @empty
+                                <p class="px-4 py-6 text-center text-sm text-slate-400">You're all caught up.</p>
+                            @endforelse
+
+                            <a href="{{ route('notifications.index') }}"
+                               class="block border-t border-slate-100 px-4 py-2 text-center text-xs font-semibold text-teal-700 hover:bg-slate-50">
+                                View all
+                            </a>
+                        </x-slot>
+                    </x-dropdown>
+                </div>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center gap-2 rounded-full py-1 ps-1 pe-3 text-sm font-medium text-slate-700 hover:bg-slate-100 focus:outline-none transition">
@@ -62,6 +110,9 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('My Projects') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
+                {{ __('Notifications') }} @if ($unreadCount > 0) ({{ $unreadCount }}) @endif
             </x-responsive-nav-link>
         </div>
 
