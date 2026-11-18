@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\BoardUpdated;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskAssigned;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
@@ -28,7 +29,9 @@ class TaskController extends Controller
 
         $data['position'] = $this->nextPosition($data['board_column_id']);
 
-        $project->tasks()->create($data + ['created_by' => $request->user()->id]);
+        $task = $project->tasks()->create($data + ['created_by' => $request->user()->id]);
+
+        $this->broadcastChange($task, 'created');
 
         return back()->with('status', 'Task added.');
     }
@@ -42,7 +45,7 @@ class TaskController extends Controller
         return view('tasks.show', compact('task'));
     }
 
-        public function update(Request $request, Task $task)
+    public function update(Request $request, Task $task)
     {
         Gate::authorize('update', $task);
 
@@ -55,6 +58,7 @@ class TaskController extends Controller
                 'required',
                 Rule::exists('board_columns', 'id')->where('project_id', $project->id),
             ],
+            // Can only assign to someone who is a member of this project.
             'assigned_to' => [
                 'nullable',
                 Rule::exists('project_user', 'user_id')->where('project_id', $project->id),
@@ -63,6 +67,7 @@ class TaskController extends Controller
             'due_date' => ['nullable', 'date'],
         ]);
 
+        // Moved to another column: put it at the bottom of that column.
         if ((int) $data['board_column_id'] !== $task->board_column_id) {
             $data['position'] = $this->nextPosition($data['board_column_id']);
         }
@@ -78,20 +83,12 @@ class TaskController extends Controller
             User::find($newAssignee)?->notify(new TaskAssigned($task, $request->user()));
         }
 
+        $this->broadcastChange($task, 'updated');
+
         return redirect()->route('tasks.show', $task)->with('status', 'Task updated.');
     }
 
-    public function destroy(Task $task)
-    {
-        Gate::authorize('delete', $task);
-
-        $project = $task->project;
-        $task->delete();
-
-        return redirect()->route('projects.show', $project)->with('status', 'Task deleted.');
-    }
-
-     // Called by drag-and-drop: save the card's new column and the new order of that column.
+    // Called by drag-and-drop: save the card's new column and the new order of that column.
     public function move(Request $request, Task $task)
     {
         Gate::authorize('update', $task);
@@ -128,11 +125,46 @@ class TaskController extends Controller
             }
         });
 
+        $this->broadcastChange($task->refresh(), 'moved');
+
         return response()->json(['ok' => true]);
+    }
+
+    public function destroy(Task $task)
+    {
+        Gate::authorize('delete', $task);
+
+        $project = $task->project;
+        $taskId = $task->id;
+
+        $task->delete();
+
+        $this->broadcastDeleted($project->id, $taskId);
+
+        return redirect()->route('projects.show', $project)->with('status', 'Task deleted.');
     }
 
     private function nextPosition(int|string $columnId): int
     {
         return (Task::where('board_column_id', $columnId)->max('position') ?? -1) + 1;
+    }
+
+    // Live updates must never break the real action, so errors are only logged.
+    private function broadcastChange(Task $task, string $type): void
+    {
+        try {
+            event(BoardUpdated::forTask($task, $type));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    private function broadcastDeleted(int $projectId, int $taskId): void
+    {
+        try {
+            event(new BoardUpdated($projectId, 'deleted', $taskId));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }

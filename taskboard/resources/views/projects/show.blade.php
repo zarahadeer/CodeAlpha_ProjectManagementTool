@@ -63,11 +63,6 @@
 
     @php
         $accents = ['border-slate-400', 'border-sky-400', 'border-violet-400', 'border-teal-500'];
-        $priorityStyles = [
-            'high' => 'bg-red-100 text-red-700',
-            'medium' => 'bg-amber-100 text-amber-700',
-            'low' => 'bg-slate-200 text-slate-600',
-        ];
     @endphp
 
     <div class="py-6">
@@ -80,10 +75,10 @@
                 <div class="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-800 ring-1 ring-red-200">{{ $errors->first() }}</div>
             @endif
 
-            <p class="mb-3 text-xs text-slate-400">Tip: drag cards to reorder them or move them between columns.</p>
+            <p class="mb-3 text-xs text-slate-400">Tip: drag cards to reorder them or move them between columns. Changes appear live for everyone on this board.</p>
 
             {{-- Board --}}
-            <div class="flex items-start gap-4 overflow-x-auto pb-4">
+            <div data-board data-project-id="{{ $project->id }}" class="flex items-start gap-4 overflow-x-auto pb-4">
                 @foreach ($project->columns as $column)
                     <div data-column class="w-72 shrink-0 rounded-xl border-t-4 bg-slate-100 p-3 {{ $accents[$loop->index % count($accents)] }}">
                         <h3 class="mb-3 flex items-center justify-between text-sm font-bold uppercase tracking-wide text-slate-700">
@@ -94,35 +89,7 @@
                         {{-- Drop zone: stays tall enough to drop into even when empty --}}
                         <div data-task-list data-column-id="{{ $column->id }}" class="min-h-[4rem] space-y-2 pb-1">
                             @foreach ($column->tasks as $task)
-                                <a data-task-id="{{ $task->id }}" href="{{ route('tasks.show', $task) }}"
-                                   class="block cursor-grab select-none rounded-lg bg-white p-3 shadow-sm ring-1 ring-slate-200 hover:shadow hover:ring-teal-400 active:cursor-grabbing">
-                                    <p class="text-sm font-medium text-slate-900">{{ $task->title }}</p>
-
-                                    <div class="mt-3 flex items-center justify-between">
-                                        <div class="flex flex-wrap items-center gap-1.5">
-                                            <span class="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase {{ $priorityStyles[$task->priority] ?? $priorityStyles['medium'] }}">
-                                                {{ $task->priority }}
-                                            </span>
-
-                                            @if ($task->due_date)
-                                                <span class="rounded px-1.5 py-0.5 text-[10px] font-semibold
-                                                    {{ $task->isOverdue() ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600' }}">
-                                                    {{ $task->due_date->format('M j') }}{{ $task->isOverdue() ? ' · overdue' : '' }}
-                                                </span>
-                                            @endif
-                                        </div>
-
-                                        @if ($task->assignee)
-                                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-600 text-[11px] font-semibold text-white"
-                                                  title="{{ $task->assignee->name }}">
-                                                {{ strtoupper(mb_substr($task->assignee->name, 0, 1)) }}
-                                            </span>
-                                        @else
-                                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-dashed border-slate-300 text-[11px] text-slate-400"
-                                                  title="Unassigned">?</span>
-                                        @endif
-                                    </div>
-                                </a>
+                                @include('projects._task-card', ['task' => $task])
                             @endforeach
                         </div>
 

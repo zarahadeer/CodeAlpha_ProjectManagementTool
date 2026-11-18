@@ -1,8 +1,9 @@
 import Sortable from 'sortablejs';
 
 const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+const board = document.querySelector('[data-board]');
 
-// Keep the little number badge on each column correct after a move.
+// Keep the little number badge on each column correct.
 function updateCounts() {
     document.querySelectorAll('[data-task-list]').forEach((list) => {
         const column = list.closest('[data-column]');
@@ -13,20 +14,28 @@ function updateCounts() {
     });
 }
 
+// Put the cards of a column in the given order.
+function applyOrder(list, ids) {
+    ids.forEach((id) => {
+        const card = list.querySelector(`[data-task-id="${id}"]`);
+        if (card) list.appendChild(card);
+    });
+}
+
+/* ---------- Drag and drop ---------- */
 document.querySelectorAll('[data-task-list]').forEach((list) => {
     Sortable.create(list, {
         group: 'tasks',
         draggable: '[data-task-id]',
         animation: 150,
 
-        forceFallback: true,        // smooth mouse-based drag instead of the browser's link drag
-        fallbackTolerance: 3,       // small movement still counts as a click, not a drag
-        emptyInsertThreshold: 30,   // easier to drop into empty or short columns
+        forceFallback: true,
+        fallbackTolerance: 3,
+        emptyInsertThreshold: 30,
         scroll: true,
         scrollSensitivity: 80,
 
         onEnd: (evt) => {
-            // Dropped back in the same spot: nothing to save.
             if (evt.from === evt.to && evt.oldIndex === evt.newIndex) {
                 return;
             }
@@ -60,3 +69,41 @@ document.querySelectorAll('[data-task-list]').forEach((list) => {
         },
     });
 });
+
+/* ---------- Live updates from other people ---------- */
+if (board && window.Echo) {
+    window.Echo.private(`project.${board.dataset.projectId}`)
+        .listen('.board.updated', (e) => {
+            const existing = document.querySelector(`[data-task-id="${e.taskId}"]`);
+
+            if (e.type === 'deleted') {
+                existing?.remove();
+                updateCounts();
+                return;
+            }
+
+            const list = document.querySelector(
+                `[data-task-list][data-column-id="${e.columnId}"]`
+            );
+            if (!list) return;
+
+            let card = existing;
+
+            // Use the fresh card HTML sent by the server.
+            if (e.html) {
+                const template = document.createElement('template');
+                template.innerHTML = e.html.trim();
+                const fresh = template.content.firstElementChild;
+
+                if (card) card.replaceWith(fresh);
+                card = fresh;
+            }
+
+            if (card && card.parentElement !== list) {
+                list.appendChild(card);
+            }
+
+            applyOrder(list, e.orderedIds);
+            updateCounts();
+        });
+}

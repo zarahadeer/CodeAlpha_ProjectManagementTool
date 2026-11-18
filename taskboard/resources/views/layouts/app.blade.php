@@ -4,6 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        @auth
+        <meta name="user-id" content="{{ auth()->id() }}">
+        @endauth
 
         <title>{{ config('app.name', 'Crewboard') }}</title>
 
@@ -28,5 +31,6 @@
                 {{ $slot }}
             </main>
         </div>
+        <div id="toast" class="pointer-events-none fixed bottom-5 right-5 z-50 hidden max-w-sm rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg"></div>
     </body>
 </html>
