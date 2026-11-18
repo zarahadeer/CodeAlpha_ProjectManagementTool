@@ -1,59 +1,143 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Crewboard
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Crewboard is a collaborative project management tool in the style of Trello and Asana. Teams create projects, organise work on a board, assign tasks, and discuss them in comments. Changes appear live for everyone on the board.
 
-## About Laravel
+Built as an internship project with Laravel.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Accounts:** register, log in, log out, edit profile, delete account
+- **Download all data:** export your own projects, tasks, comments and notifications as a JSON file (available on the profile page, before deleting an account)
+- **Group projects:** create a project and add teammates by email, with roles (owner, admin, member)
+- **Project boards:** every project gets columns (To Do, In Progress, In Review, Done)
+- **Task cards:** title, description, status, assignee, priority and due date; overdue tasks are highlighted
+- **Drag and drop:** move cards between columns or reorder them; the order is saved
+- **Comments:** discuss a task right on its card
+- **Notifications:** in-app bell with an unread count when you are assigned a task, someone comments on your task, or you are added to a project
+- **Real-time updates (WebSockets):** board changes (create, edit, move, delete) and new notifications appear instantly for other users, with no page refresh
+- **Permissions:** only project members can see a project; roles control who can edit, remove members or delete
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech stack
 
-## Learning Laravel
+| Part | Technology |
+|---|---|
+| Backend | Laravel 12 (PHP 8.2+) |
+| Auth | Laravel Breeze (Blade) |
+| Frontend | Blade, Tailwind CSS, Alpine.js, Vite |
+| Drag and drop | SortableJS |
+| Database | SQLite (works with MySQL too) |
+| Real-time | Laravel Reverb (WebSocket server) + Laravel Echo |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Requirements
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP 8.2 or newer
+- Composer
+- Node.js 18 or newer, with npm
 
-## Laravel Sponsors
+## Setup
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git
+cd Internship/taskboard
 
-### Premium Partners
+composer install
+npm install
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+cp .env.example .env
+php artisan key:generate
+```
 
-## Contributing
+On Windows PowerShell, use `copy .env.example .env` instead of `cp`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Create the SQLite database file, then build the tables and add demo data:
 
-## Code of Conduct
+```bash
+# macOS / Linux
+touch database/database.sqlite
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Windows PowerShell
+New-Item database\database.sqlite -ItemType File
 
-## Security Vulnerabilities
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Run the app
 
-## License
+Open **three terminals** in the `taskboard` folder and keep them running:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan serve
+```
+```bash
+npm run dev
+```
+```bash
+php artisan reverb:start
+```
+
+Then open http://127.0.0.1:8000
+
+The third terminal (Reverb) is only needed for live updates. Without it the app works normally, but changes show up after a refresh.
+
+## Demo accounts
+
+`php artisan migrate --seed` creates four users, two projects, sample tasks and comments. The password for every account is `password`.
+
+| Name | Email | Roles |
+|---|---|---|
+| Alex Morgan | alex@crewboard.test | Owner of *Website Redesign*, admin in *Mobile App Launch* |
+| Sara Khan | sara@crewboard.test | Admin in *Website Redesign*, owner of *Mobile App Launch* |
+| Omar Ali | omar@crewboard.test | Member of both projects |
+| Mia Chen | mia@crewboard.test | Member of *Website Redesign* only |
+
+### Try the real-time features
+
+1. Log in as Alex in a normal window and as Sara in a private/incognito window.
+2. Open **Website Redesign** in both.
+3. Drag a card, add a task, edit or delete one in a window and watch the other window update.
+4. Assign a task to the other person. Their bell badge updates and a pop-up appears.
+
+## Roles and permissions
+
+| Action | Owner | Admin | Member |
+|---|:---:|:---:|:---:|
+| View the project and its board | Yes | Yes | Yes |
+| Create, edit and move tasks, comment | Yes | Yes | Yes |
+| Delete a task | Yes | Yes | Only tasks they created |
+| Delete a comment | Yes | Yes | Only their own |
+| Edit the project, add or remove members | Yes | Yes | No |
+| Change member roles | Yes | No | No |
+| Delete the project | Yes | No | No |
+
+Permissions are enforced on the server with Laravel Policies (`ProjectPolicy`, `TaskPolicy`, `CommentPolicy`).
+
+## Database
+
+| Table | Purpose |
+|---|---|
+| `users` | Accounts |
+| `projects` | Projects, with an owner |
+| `project_user` | Membership and role of each user in a project |
+| `board_columns` | The columns of a project's board |
+| `tasks` | Task cards (column, assignee, priority, due date, position) |
+| `comments` | Comments on tasks |
+| `notifications` | In-app notifications (Laravel's built-in table) |
+
+## Project layout
+
+| Path | What it holds |
+|---|---|
+| `app/Models` | Eloquent models and relationships |
+| `app/Http/Controllers` | Projects, tasks, members, comments, notifications, data export |
+| `app/Policies` | Permission rules |
+| `app/Events` | Real-time events (`BoardUpdated`, `NotificationReceived`) |
+| `app/Notifications` | Notification classes |
+| `routes/channels.php` | Rules for who can listen to which WebSocket channel |
+| `resources/views` | Blade pages and layouts |
+| `resources/js` | Drag and drop (`board.js`) and live notifications (`notifications.js`) |
+| `database/seeders/DemoSeeder.php` | Demo data |
+
+## Notes
+
+- Broadcasting uses `ShouldBroadcastNow`, so no queue worker is needed.
+- If Reverb is not running, live events are skipped and logged; they never break saving a task.
