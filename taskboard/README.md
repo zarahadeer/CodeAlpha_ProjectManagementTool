@@ -37,8 +37,8 @@ Built as an internship project with Laravel.
 ## Setup
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git
-cd Internship/taskboard
+git clone https://github.com/zarahadeer/CodeAlpha_ProjectManagementTool.git
+cd CodeAlpha_ProjectManagementTool/taskboard
 
 composer install
 npm install
