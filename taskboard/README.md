@@ -141,3 +141,4 @@ Permissions are enforced on the server with Laravel Policies (`ProjectPolicy`, `
 
 - Broadcasting uses `ShouldBroadcastNow`, so no queue worker is needed.
 - If Reverb is not running, live events are skipped and logged; they never break saving a task.
+- Email goes to log file.

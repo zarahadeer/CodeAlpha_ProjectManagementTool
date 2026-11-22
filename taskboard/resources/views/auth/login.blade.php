@@ -28,11 +28,6 @@
                 <span class="ms-2 text-sm text-slate-600">{{ __('Remember me') }}</span>
             </label>
 
-            @if (Route::has('password.request'))
-                <a class="text-sm text-teal-700 hover:underline" href="{{ route('password.request') }}">
-                    {{ __('Forgot password?') }}
-                </a>
-            @endif
         </div>
 
         <x-primary-button class="w-full justify-center">{{ __('Log in') }}</x-primary-button>
